@@ -1,0 +1,94 @@
+[project]
+name = "offers"
+version = "0.1.0"
+description = "Offers cell: its own API and database"
+requires-python = ">=3.12"
+dependencies = [
+    "psycopg[binary]>=3.2,<4",
+    "fastapi>=0.115,<1",
+    "pyjwt[crypto]>=2.10,<3",
+    # [standard] = uvloop + httptools: +82% RPS in polyglot-benchmark-lab, and avoids the h11 Nagle stall
+    "uvicorn[standard]>=0.30,<1",
+    "httpx>=0.27,<1",
+    "pyyaml>=6,<7",
+    "sentry-sdk>=2.72,<3",
+]
+
+[project.optional-dependencies]
+mcp = ["mcp>=2.3,<3"]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=7",
+    "pgserver>=0.1.4",
+    "mcp>=2.3,<3",
+    "mypy>=2.4",
+    "types-PyYAML>=6",
+]
+
+[project.scripts]
+offers-mcp = "cellkit.mcp:main"
+offers-api = "cellkit.server:api"
+offers-publish = "cellkit.server:run_publish"
+offers-db = "cellkit.server:run_db"
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "W", "F", "I", "B", "BLE", "UP", "C4", "SIM", "RUF", "PIE", "PT", "RET", "ISC",
+    "PERF", "LOG", "G", "FURB",
+]
+# ruff format wraps code at 88; what stays longer are nosemgrep/noqa justifications, which
+# must sit on the flagged line.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# The contract suite is imported whole on purpose: its __all__ lists the tests to collect.
+"tests/test_contract.py" = ["F403"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+# Service code: mypy --strict (the global-only strict flags are set above). tests/ stays gradual:
+# its fixtures and test functions are unannotated, so mypy checks only their call sites.
+[[tool.mypy.overrides]]
+module = ["cellkit.*", "solo_offers.*"]
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+no_implicit_reexport = true
+warn_return_any = true
+
+# Gradual: the contract suite and its fixtures. pytest injects their arguments by name, so they
+# stay unannotated; check_untyped_defs still type-checks their bodies.
+[[tool.mypy.overrides]]
+module = ["cellkit.contract", "cellkit.testing"]
+disallow_any_generics = false
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+warn_return_any = false

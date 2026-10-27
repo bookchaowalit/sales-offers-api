@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "offers": {
+      "command": ".venv/bin/offers-mcp",
+      "args": []
+    }
+  }
+}
