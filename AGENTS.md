@@ -17,7 +17,9 @@
 - `offers-mcp` (stdio, see `.mcp.json`) is this cell's MCP server: tools `offers.<resource>.list|get|create|update|delete`
   call the cell API with the caller's token (`EMPIRE_TOKEN`, `EMPIRE_TOKEN_FILE` or the `owner-mcp` automation token;
   URL from `EMPIRE_OFFERS_API`). Set `EMPIRE_MCP_READONLY=1` for list/get only. Never add actor, workspace or token arguments.
-- Merging to `main` deploys production (Railway GitHub source + Wait for CI); verify `/health`
-  and one authorized read afterwards. Do not `railway up` from a working tree.
+- Merging to `main` deploys production: the CI `deploy` job uploads the checked-out commit with
+  `railway up` after the CI and security jobs pass (the Railway GitHub source could not be connected),
+  then smoke-tests `/health`. Verify one authorized read afterwards. Do not `railway up` from a
+  working tree.
 - Keep the solo-empire registry entry (`offers` in
   `repository-catalog/registries/online-systems.yaml`) in sync.

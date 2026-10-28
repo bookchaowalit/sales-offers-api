@@ -41,9 +41,13 @@ Dependencies are locked in `uv.lock`; the image installs them with `uv sync --fr
 production runs the versions CI tested. Change a dependency with `uv add`/`uv lock` and commit
 the lock. Product scope and measures: [PRODUCT.md](PRODUCT.md).
 
-Deploys: `offers-api` is connected to this repository's `main` with Railway's Wait for CI
-(`checkSuites`). A merge to `main` deploys only after the CI and security checks pass; a failing
-check leaves production on the previous deployment. Roll back by redeploying an earlier
+Deploys: a merge to `main` deploys through the CI workflow's `deploy` job, which runs only after
+the CI and security jobs pass: it uploads the checked-out commit with `railway up` (Railway CLI
+5.71.0, project token `RAILWAY_TOKEN` scoped to `sales-offers-api`/production, kept in Infisical
+`/railway` as `RAILWAY_TOKEN_SALES_OFFERS_API`) and smoke-tests `/health`. The job is on while the
+repository variable `CD_DEPLOY` is `true`. Railway's own GitHub source is not connected: the
+dashboard's repository list does not show this repository and the API refuses `serviceConnect`.
+A failing check leaves production on the previous deployment. Roll back by redeploying an earlier
 deployment in Railway.
 
 Railway variables: `SENTRY_DSN` (error reporting; unset = off, see `src/cellkit/_sentry.py`),
