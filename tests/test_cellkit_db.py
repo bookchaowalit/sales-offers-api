@@ -431,7 +431,7 @@ def provision_with(
         return conn
 
     migrated: list[Any] = []
-    monkeypatch.setenv("NEON_API_KEY", "neon-key-SECRET-123456")
+    monkeypatch.setenv("NEON_API_KEY", "fake-neon-key")
     monkeypatch.setenv("KIT_SAMPLE_DB_SECRETS", str(tmp_path / "secrets" / "db.env"))
     monkeypatch.setattr(db, "_neon", neon)
     monkeypatch.setattr(db.psycopg, "connect", connect)
