@@ -471,7 +471,7 @@ def test_provisioning_writes_owner_only_urls_and_migrates(
     assert sorted(migrated[0].urls) == ["api", "migrator", "publisher"]
     out = capsys.readouterr().out
     assert "migrator-pass" not in out
-    assert "neon-key-SECRET" not in out
+    assert "fake-neon-key" not in out
 
 
 def test_provisioning_creates_a_missing_project_and_reuses_known_passwords(
