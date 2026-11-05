@@ -1,0 +1,40 @@
+# Self-contained mini cell for the cellkit characterization tests (not this cell's spec).
+# Covers: a ref between two resources, a self-ref, enums with and without defaults,
+# defaults, unique (field and pair), json object/array, bool, date and timestamp fields,
+# a date range, integer and real bounds, filters, a graph, and legacy import rewrites.
+cell: kit-sample
+title: Kit sample
+port: 3900
+resources:
+  widget:
+    table: widgets
+    plural: widgets
+    graph: [title, status]
+    filters: [status, category]
+    unique: [[title, category]]
+    ranges: [[starts_on, ends_on]]
+    legacy_table: old_widgets
+    legacy_values:
+      status: {0: draft, 1: active}
+    fields:
+      title: {type: text, required: true, max_length: 120}
+      code: {type: text, unique: true, max_length: 20}
+      status: {type: enum, values: [draft, active], default: draft}
+      category: {type: enum, values: [alpha, beta]}
+      quantity: {type: int, min: 0, max: 100, default: 1}
+      weight: {type: real, min: 0}
+      active: {type: bool, default: true}
+      starts_on: {type: date}
+      ends_on: {type: date}
+      meta: {type: json, json: object}
+      tags: {type: json, json: array}
+      seen_at: {type: timestamp}
+      parent_id: {type: ref, to: widget}
+  part:
+    table: parts
+    plural: parts
+    filters: [widget_id]
+    fields:
+      name: {type: text, required: true, max_length: 60}
+      widget_id: {type: ref, to: widget, required: true}
+      qty: {type: int, min: 1, default: 1}
