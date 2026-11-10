@@ -61,3 +61,10 @@ jobs:
           done
           echo "::error::offers-api /health did not answer ok after the deploy of ${GITHUB_SHA}; roll back by redeploying the previous deployment in Railway"
           exit 1
+
+  image:
+    # Builds the Dockerfile and scans the image with Trivy (packages inside the image, which the
+    # Trivy fs scan cannot see). Report-only for now: remove fail-on-findings once the image is clean.
+    uses: bookchaowalit/platform-ci-workflows/.github/workflows/image-scan.yml@48dccf52c57fb68c4abda83b6bcda7f0a789e822 # v1.6.1
+    with:
+      fail-on-findings: false
