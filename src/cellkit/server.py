@@ -47,6 +47,10 @@ def api() -> None:
         from cellkit.platform import checked_url
 
         jwks = JwksKeys(checked_url(jwks_url, f"{env}_JWT_JWKS_URL"))
+    from cellkit import gateway
+
+    # SPEC-002 (platform-api-gateway): the cell name is the gateway route key.
+    through_gateway = gateway.GatewayCheck.from_env(spec.name)
     cluster = default_cluster(spec)
     verifier = TokenVerifier(pem, issuer, spec.audience, jwks=jwks)
     app = create_app(
@@ -56,6 +60,7 @@ def api() -> None:
         HttpPlatform(platform_url),
         publisher_token=lambda: os.environ.get(f"{env}_PUBLISHER_TOKEN") or None,
     )
+    gateway.install(app, through_gateway)
     uvicorn.run(
         app,
         host=os.environ.get("HOST", "0.0.0.0" if hosted else "127.0.0.1"),
