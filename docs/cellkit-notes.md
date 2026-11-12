@@ -1,5 +1,9 @@
 # cellkit notes
 
+> **2026-11-12: moved out.** The kit is now the pinned `platform-cellkit` package
+> (https://github.com/bookchaowalit/platform-cellkit). The history below is the vendored copy's
+> record up to that move; new kit changes are recorded in that repository.
+
 `src/cellkit/` is this service's own framework code. It was copied on 2026-10-27 from
 finance-subscriptions-api at `f92e1a0` (the Wave 2 copy: strict typing, `ranges`, column limits
 and finite reals, Sentry capture on a failed inline publish). Nothing upstream is synced; other

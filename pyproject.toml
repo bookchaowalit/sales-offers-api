@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Offers cell: its own API and database"
 requires-python = ">=3.12"
 dependencies = [
+    # The cell toolkit (API, migrations, roles, publisher, MCP) from one pinned release.
+    "platform-cellkit @ https://github.com/bookchaowalit/platform-cellkit/releases/download/v1.0.3/platform_cellkit-1.0.3-py3-none-any.whl",
     "psycopg[binary]>=3.2,<4",
     "fastapi>=0.115,<1",
     "pyjwt[crypto]>=2.10,<3",
@@ -15,7 +17,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-mcp = ["mcp>=2.3,<3"]
+mcp = ["platform-cellkit[mcp]", "mcp>=2.3,<3"]
 dev = [
     "pytest>=8",
     "pytest-cov>=7",
@@ -72,7 +74,7 @@ warn_unused_ignores = true
 # Service code: mypy --strict (the global-only strict flags are set above). tests/ stays gradual:
 # its fixtures and test functions are unannotated, so mypy checks only their call sites.
 [[tool.mypy.overrides]]
-module = ["cellkit.*", "solo_offers.*"]
+module = ["solo_offers.*"]
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_subclassing_any = true
@@ -82,13 +84,3 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 no_implicit_reexport = true
 warn_return_any = true
-
-# Gradual: the contract suite and its fixtures. pytest injects their arguments by name, so they
-# stay unannotated; check_untyped_defs still type-checks their bodies.
-[[tool.mypy.overrides]]
-module = ["cellkit.contract", "cellkit.testing"]
-disallow_any_generics = false
-disallow_untyped_calls = false
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-warn_return_any = false
