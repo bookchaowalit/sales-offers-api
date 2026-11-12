@@ -3,7 +3,6 @@
 from pathlib import Path
 
 import pytest
-
 from cellkit.testing import client, harness, owner, platform  # noqa: F401
 
 

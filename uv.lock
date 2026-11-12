@@ -821,6 +821,56 @@ wheels = [
 ]
 
 [[package]]
+name = "offers"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "platform-cellkit" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pyjwt", extra = ["crypto"] },
+    { name = "pyyaml" },
+    { name = "sentry-sdk" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "mcp" },
+    { name = "mypy" },
+    { name = "pgserver" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "types-pyyaml" },
+]
+mcp = [
+    { name = "mcp" },
+    { name = "platform-cellkit", extra = ["mcp"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "httpx", specifier = ">=0.27,<1" },
+    { name = "mcp", marker = "extra == 'dev'", specifier = ">=2.3,<3" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.3,<3" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.4" },
+    { name = "pgserver", marker = "extra == 'dev'", specifier = ">=0.1.4" },
+    { name = "platform-cellkit", url = "https://github.com/bookchaowalit/platform-cellkit/releases/download/v1.0.3/platform_cellkit-1.0.3-py3-none-any.whl" },
+    { name = "platform-cellkit", extras = ["mcp"], marker = "extra == 'mcp'" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10,<3" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7" },
+    { name = "pyyaml", specifier = ">=6,<7" },
+    { name = "sentry-sdk", specifier = ">=2.72,<3" },
+    { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30,<1" },
+]
+provides-extras = ["mcp", "dev"]
+
+[[package]]
 name = "opentelemetry-api"
 version = "1.45.1"
 source = { registry = "https://pypi.org/simple" }
@@ -865,6 +915,49 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/f1/c9d717f66d2e4a27801577e1ae233c25aa88db875c586ac3ebe7d73b6b75/pgserver-0.1.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1a5d07c61d51f2abfef4ef61e2ef5cd014b994f7e09de8d3c140d2cf370e84a8", size = 11266316, upload-time = "2024-06-08T18:41:48.033Z" },
     { url = "https://files.pythonhosted.org/packages/85/80/f6304274c1740c283bc7317ababceb3c23c8275ce4995f7379e17b49bc6d/pgserver-0.1.4-cp312-cp312-win_amd64.whl", hash = "sha256:406e9355334e40754160a33d93f18a848720a38cd0b68da50be2ea272c89ed2d", size = 12797714, upload-time = "2024-06-08T18:41:50.774Z" },
 ]
+
+[[package]]
+name = "platform-cellkit"
+version = "1.0.3"
+source = { url = "https://github.com/bookchaowalit/platform-cellkit/releases/download/v1.0.3/platform_cellkit-1.0.3-py3-none-any.whl" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "httpx" },
+    { name = "psycopg", extra = ["binary"] },
+    { name = "pyjwt", extra = ["crypto"] },
+    { name = "pyyaml" },
+    { name = "sentry-sdk" },
+    { name = "uvicorn", extra = ["standard"] },
+]
+wheels = [
+    { url = "https://github.com/bookchaowalit/platform-cellkit/releases/download/v1.0.3/platform_cellkit-1.0.3-py3-none-any.whl", hash = "sha256:129973f926fd3d4f50a3841f08c8d4083932c5b242bd03daa0f654943b7c50ac" },
+]
+
+[package.optional-dependencies]
+mcp = [
+    { name = "mcp" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "confluent-kafka", marker = "extra == 'dev'", specifier = ">=2.6,<3" },
+    { name = "confluent-kafka", marker = "extra == 'kafka'", specifier = ">=2.6,<3" },
+    { name = "fastapi", specifier = ">=0.115,<1" },
+    { name = "httpx", specifier = ">=0.27,<1" },
+    { name = "mcp", marker = "extra == 'dev'", specifier = ">=2.3,<3" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.3,<3" },
+    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.4" },
+    { name = "pgserver", marker = "extra == 'dev'", specifier = ">=0.1.4" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
+    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10,<3" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
+    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7" },
+    { name = "pyyaml", specifier = ">=6,<7" },
+    { name = "sentry-sdk", specifier = ">=2.72,<3" },
+    { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30,<1" },
+]
+provides-extras = ["mcp", "kafka", "dev"]
 
 [[package]]
 name = "platformdirs"
@@ -1407,52 +1500,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/ad/eb/4e197bf26b023abaf
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f3/93/181df62699d9b5aca1d87e5cfda131dac87e3cdaebf668662f7206ca3470/starlette-1.9.0-py3-none-any.whl", hash = "sha256:fd3f159936e882d06c1108f84688f7cda2cf85fc6a592a50edbd175e882c2ddc", size = 80335, upload-time = "2026-10-18T15:50:31.526Z" },
 ]
-
-[[package]]
-name = "offers"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "fastapi" },
-    { name = "httpx" },
-    { name = "psycopg", extra = ["binary"] },
-    { name = "pyjwt", extra = ["crypto"] },
-    { name = "pyyaml" },
-    { name = "sentry-sdk" },
-    { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "mcp" },
-    { name = "mypy" },
-    { name = "pgserver" },
-    { name = "pytest" },
-    { name = "pytest-cov" },
-    { name = "types-pyyaml" },
-]
-mcp = [
-    { name = "mcp" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "fastapi", specifier = ">=0.115,<1" },
-    { name = "httpx", specifier = ">=0.27,<1" },
-    { name = "mcp", marker = "extra == 'dev'", specifier = ">=2.3,<3" },
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=2.3,<3" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=2.4" },
-    { name = "pgserver", marker = "extra == 'dev'", specifier = ">=0.1.4" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.2,<4" },
-    { name = "pyjwt", extras = ["crypto"], specifier = ">=2.10,<3" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=7" },
-    { name = "pyyaml", specifier = ">=6,<7" },
-    { name = "sentry-sdk", specifier = ">=2.72,<3" },
-    { name = "types-pyyaml", marker = "extra == 'dev'", specifier = ">=6" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.30,<1" },
-]
-provides-extras = ["mcp", "dev"]
 
 [[package]]
 name = "truststore"

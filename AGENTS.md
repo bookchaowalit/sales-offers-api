@@ -7,9 +7,10 @@
   the hosted database or the hosted platform.
 - Run `.venv/bin/pytest -q`, `.venv/bin/mypy .` and `uvx ruff@0.17.1 check . && uvx ruff@0.17.1 format --check .` before committing. Migrations are append-only: never edit
   an applied file, add a new numbered one.
-- `src/cellkit` is this repository's own service code (copied from finance-subscriptions-api on
-  2026-10-27; the shared generator was retired on 2026-10-12). Change it here; there is nothing
-  upstream to sync from. Cell-specific code lives in `src/solo_offers/`.
+- The cell toolkit is the pinned `platform-cellkit` package (import name `cellkit`; owner
+  decision 2026-11-12). Kit changes go to https://github.com/bookchaowalit/platform-cellkit, then
+  bump the wheel URL in `pyproject.toml` and run `uv lock`. Never copy kit code back into `src/`.
+  Cell-specific code lives in `src/solo_offers/`.
 - This is the Offer & Product service (EOS domain 4): the priced catalogue of what Solo Empire
   sells. Ids that point into another service (`project_id`, `goal_id`) are plain numbers, not
   foreign keys; resolve them through that service's API. `stream` is an income stream id from
