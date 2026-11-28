@@ -1,10 +1,13 @@
 """The cell's MCP delete tools ask before they call the API (platform-cellkit SPEC-003).
 
-The API is an httpx MockTransport, so no network or database is touched.
+Every generated delete tool is driven in process against an httpx MockTransport API, so no
+network or database is touched.
 """
 
 from __future__ import annotations
 
+import base64
+import json
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +20,18 @@ from mcp.client import Client
 from mcp.types import ElicitResult
 
 ROOT = Path(__file__).resolve().parents[1]
+WORKSPACE = "11111111-1111-4111-8111-111111111111"
+
+
+def _segment(obj: dict[str, Any]) -> str:
+    return base64.urlsafe_b64encode(json.dumps(obj).encode()).decode().rstrip("=")
+
+
+# A JWT-shaped caller token with a ws claim (the kit reads it for display; the mock API ignores it).
+TOKEN = f"{_segment({'alg': 'none'})}.{_segment({'ws': WORKSPACE})}.signature-part"
+Callback = Any  # an mcp ElicitationFnT, or None for a client without forms
+asked: list[str] = []  # the questions the client was shown
+auth: list[str] = []  # the Authorization header of every API call
 
 
 @pytest.fixture(autouse=True)
@@ -25,51 +40,66 @@ def ask_mode(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("EMPIRE_MCP_CONFIRM", "ask")
 
 
-Callback = Any  # an mcp ElicitationFnT, or None for a client without forms
-
-
 def answer(action: str, content: dict[str, Any] | None = None) -> Callback:
     async def callback(ctx: Any, params: Any) -> ElicitResult:
+        asked.append(params.message)
         return ElicitResult(action=action, content=content)  # type: ignore[arg-type]
 
     return callback
 
 
-def run_delete(callback: Callback) -> tuple[str, list[tuple[str, str]]]:
-    """Call the cell's first delete tool; return the reply text and the API calls made."""
-    hits: list[tuple[str, str]] = []
+def run_deletes(callback: Callback) -> list[tuple[str, str, list[str]]]:
+    """Call every delete tool once; return (tool, reply text, API methods) per tool."""
+    hits: list[str] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
-        hits.append((request.method, request.url.path))
+        hits.append(request.method)
+        auth.append(request.headers.get("Authorization", ""))
         return httpx.Response(204)
 
     client = httpx.Client(
         base_url="http://cell.test", transport=httpx.MockTransport(handler)
     )
-    server = build_server(load(ROOT / "cell.yaml"), client, lambda: "t" * 40)
+    server = build_server(load(ROOT / "cell.yaml"), client, lambda: TOKEN)
 
-    async def go() -> str:
+    async def go() -> list[tuple[str, str, list[str]]]:
+        out = []
         async with Client(server, elicitation_callback=callback) as c:
             tools = [
                 t for t in (await c.list_tools()).tools if t.name.endswith(".delete")
             ]
             assert tools, "cell.yaml declares no deletable resource"
-            schema = tools[0].input_schema["properties"]["id"]
-            ident: Any = (
-                1
-                if schema.get("type") == "integer"
-                else "00000000-0000-0000-0000-000000000001"
-            )
-            result = await c.call_tool(tools[0].name, {"id": ident})
-            return " ".join(getattr(part, "text", "") for part in result.content)
+            for tool in tools:
+                schema = tool.input_schema["properties"]["id"]
+                ident: Any = (
+                    1
+                    if schema.get("type") == "integer"
+                    else "00000000-0000-0000-0000-000000000001"
+                )
+                hits.clear()
+                result = await c.call_tool(tool.name, {"id": ident})
+                text = " ".join(getattr(part, "text", "") for part in result.content)
+                out.append((tool.name, text, list(hits)))
+        return out
 
-    return anyio.run(go), hits
+    asked.clear()
+    auth.clear()
+    return anyio.run(go)
 
 
-def test_yes_sends_one_delete() -> None:
-    text, hits = run_delete(answer("accept", {"confirm": True}))
-    assert [m for m, _ in hits] == ["DELETE"]
-    assert "cancelled" not in text
+def test_yes_sends_one_delete_per_tool() -> None:
+    results = run_deletes(answer("accept", {"confirm": True}))
+    for name, text, hits in results:
+        assert hits == ["DELETE"], name
+        assert "cancelled" not in text, name
+    assert len(asked) == len(results)
+    for message in asked:
+        assert "This cannot be undone." in message
+        assert f"\nWhere: workspace {WORKSPACE}, token " in message
+        assert TOKEN not in message
+        assert "signature-part" not in message
+    # The confirmed DELETE carries the token whose workspace the question named.
+    assert auth == [f"Bearer {TOKEN}"] * len(results)
 
 
 @pytest.mark.parametrize(
@@ -81,18 +111,18 @@ def test_yes_sends_one_delete() -> None:
     ],
 )
 def test_no_sends_nothing(callback: Callback) -> None:
-    text, hits = run_delete(callback)
-    assert hits == []
-    assert "cancelled: not confirmed" in text
+    for name, text, hits in run_deletes(callback):
+        assert hits == [], name
+        assert "cancelled: not confirmed" in text, name
 
 
 def test_client_without_forms_keeps_old_behaviour() -> None:
-    _, hits = run_delete(None)
-    assert [m for m, _ in hits] == ["DELETE"]
+    for name, _, hits in run_deletes(None):
+        assert hits == ["DELETE"], name
 
 
 def test_require_refuses_client_without_forms(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("EMPIRE_MCP_CONFIRM", "require")
-    text, hits = run_delete(None)
-    assert hits == []
-    assert "confirmation unavailable" in text
+    for name, text, hits in run_deletes(None):
+        assert hits == [], name
+        assert "confirmation unavailable" in text, name
