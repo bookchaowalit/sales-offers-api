@@ -6,6 +6,8 @@ network or database is touched.
 
 from __future__ import annotations
 
+import base64
+import json
 from pathlib import Path
 from typing import Any
 
@@ -18,9 +20,18 @@ from mcp.client import Client
 from mcp.types import ElicitResult
 
 ROOT = Path(__file__).resolve().parents[1]
-TOKEN = "t" * 40
+WORKSPACE = "11111111-1111-4111-8111-111111111111"
+
+
+def _segment(obj: dict[str, Any]) -> str:
+    return base64.urlsafe_b64encode(json.dumps(obj).encode()).decode().rstrip("=")
+
+
+# A JWT-shaped caller token with a ws claim (the kit reads it for display; the mock API ignores it).
+TOKEN = f"{_segment({'alg': 'none'})}.{_segment({'ws': WORKSPACE})}.signature-part"
 Callback = Any  # an mcp ElicitationFnT, or None for a client without forms
 asked: list[str] = []  # the questions the client was shown
+auth: list[str] = []  # the Authorization header of every API call
 
 
 @pytest.fixture(autouse=True)
@@ -43,6 +54,7 @@ def run_deletes(callback: Callback) -> list[tuple[str, str, list[str]]]:
 
     def handler(request: httpx.Request) -> httpx.Response:
         hits.append(request.method)
+        auth.append(request.headers.get("Authorization", ""))
         return httpx.Response(204)
 
     client = httpx.Client(
@@ -71,6 +83,7 @@ def run_deletes(callback: Callback) -> list[tuple[str, str, list[str]]]:
         return out
 
     asked.clear()
+    auth.clear()
     return anyio.run(go)
 
 
@@ -82,8 +95,11 @@ def test_yes_sends_one_delete_per_tool() -> None:
     assert len(asked) == len(results)
     for message in asked:
         assert "This cannot be undone." in message
-        assert "\nWhere: " in message
+        assert f"\nWhere: workspace {WORKSPACE}, token " in message
         assert TOKEN not in message
+        assert "signature-part" not in message
+    # The confirmed DELETE carries the token whose workspace the question named.
+    assert auth == [f"Bearer {TOKEN}"] * len(results)
 
 
 @pytest.mark.parametrize(
